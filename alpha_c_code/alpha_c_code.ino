@@ -11,6 +11,7 @@ int pot_sldr1 = 23;
 int pot_sldr2 = 22;
 
 float pot1_val = 0;
+float curr_pot1_val = 0;
 float pot2_val = 0;
 float sldr_val = 0;
 
@@ -42,6 +43,8 @@ void setup() {
 }
 
 void loop() {
+  curr_pot1_val = de_sketchify(pot1, 6);
+  
   float temp_pot_val = analogRead(pot_sldr1);
 //  if ( temp_pot_val/8 < pot_sldr1_val -  7 || temp_pot_val/8 > pot_sldr1_val + 7){  
 //    pot_sldr1_val = analogRead(pot_sldr2)/8;
@@ -55,9 +58,9 @@ void loop() {
 //    usbMIDI.sendControlChange(pot_sldr2_cont, value, channel);
 //  }
 
-  if ( analogRead(pot1) < pot1_val -  5  || analogRead(pot1) > pot1_val + 5){
+  if ( curr_pot1_val - 0.5  >= pot1_val || curr_pot1_val + 0.5 <= pot1_val){
     ///WORKS PUT POT1 CODE HERE
-    pot1_val = analogRead(pot1);
+    pot1_val = curr_pot1_val;
     float value = ( pot1_val / 851 ) * 123;
     Serial.println(pot1_val);
     usbMIDI.sendControlChange(pot1_cont, value, channel);
@@ -92,4 +95,17 @@ void loop() {
     usbMIDI.sendControlChange(sldr_cont, value, channel);
   }
 
+delay(1000);
 }
+
+float de_sketchify(int port, int iter){
+  float avg_reading = 0;
+  
+  for (int i = 0; i < iter; i++){
+    avg_reading += analogRead(port);
+  }
+  avg_reading = avg_reading / iter;
+  return avg_reading;
+
+}
+
