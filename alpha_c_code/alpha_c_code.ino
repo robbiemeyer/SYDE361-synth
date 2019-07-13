@@ -63,33 +63,33 @@ void loop() {
     usbMIDI.sendControlChange(pot1_cont, value, channel);
   }
 
-//  if ( digitalRead(but_g) == LOW ){
-//    //Serial.println("but g");
-//    //WORKS PUT CODE FOR GREEN BUTTON HERE
-//    but_val += 10;
-//    usbMIDI.sendControlChange(but_cont, but_val, channel);
-//    delay(150);
-//
-//  }
-//  if ( digitalRead(but_r) == LOW ){
-//    //Serial.println("but r");
-//    but_val -= 10;
-//    usbMIDI.sendControlChange(but_cont, but_val, channel);
-//    //WORKS PUT CODE FOR RED BUTTON HERE
-//    delay(150);
-//  }
-//  if (digitalRead(switch1) != sw1_state){
-//    sw1_state = digitalRead(switch1);
-//    Serial.println(digitalRead(switch1));
-//    usbMIDI.sendControlChange(sw1_cont, sw1_state, channel);
-//  }
-//  
-//  float curr_sldr = analogRead(sldr);
-//  if ( curr_sldr < sldr_val -  5|| curr_sldr > sldr_val + 5){
-//    sldr_val = curr_sldr;
-//    float value = ( sldr_val / 90 ) * 250;
-//    Serial.println(value);
-//    usbMIDI.sendControlChange(sldr_cont, value, channel);
-//  }
+  if ( digitalRead(but_g) == LOW ){
+    //Serial.println("but g");
+    //WORKS PUT CODE FOR GREEN BUTTON HERE
+    but_val += 10;
+    usbMIDI.sendControlChange(but_cont, but_val, channel);
+    delay(150);
+
+  }
+  if ( digitalRead(but_r) == LOW ){
+    //Serial.println("but r");
+    but_val -= 10;
+    usbMIDI.sendControlChange(but_cont, but_val, channel);
+    //WORKS PUT CODE FOR RED BUTTON HERE
+    delay(150);
+  }
+  if (digitalRead(switch1) != sw1_state){
+    sw1_state = digitalRead(switch1);
+    Serial.println(digitalRead(switch1));
+    usbMIDI.sendControlChange(sw1_cont, sw1_state, channel);
+  }
+  
+  float curr_sldr = analogRead(sldr);
+  if ( curr_sldr < sldr_val -  5|| curr_sldr > sldr_val + 5){
+    sldr_val = curr_sldr;
+    float value = ( sldr_val / 90 ) * 250;
+    Serial.println(value);
+    usbMIDI.sendControlChange(sldr_cont, value, channel);
+  }
 
 }
