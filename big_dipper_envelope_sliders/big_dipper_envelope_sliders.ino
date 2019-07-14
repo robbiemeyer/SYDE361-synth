@@ -5,9 +5,8 @@
 
 const int controllerBase = 80;
 const int channel = 1;
-float value = 0;
-float normalized_value = 0;
-float final_value = 0;
+int value = 0;
+int final_value = 0;
 float last_value;
 
 
@@ -17,21 +16,18 @@ void setup() {
 }
 
 void loop() {
-  last_value = value;
-  value = analogRead(15);
-  normalized_value = normalize(value, 1.0, 270.0);
-  final_value = 125*normalized_value;
-  sendControl(15, final_value, last_value);
-  Serial.println(final_value);
+
+  value = analogRead(15) / 8;
+  sendControl(15, value);
+
+  delay(100);
 }
 
-float normalize (float value, int min_value, int max_value) {
-  value = value >= max_value ? max_value : value;
-  value = value <= min_value ? min_value : value;
-  return ((value - min_value))/(max_value - min_value);
-}
-
-void sendControl(int pin, int value, int last_value) {
-  if (value > 0 && last_value != value)
+void sendControl(int pin, int value) {
+  if (last_value != value) {
     usbMIDI.sendControlChange(controllerBase + pin, value, channel);
+    Serial.println(value);
+    Serial.println();
+    last_value = value;
+  }
 }
