@@ -58,6 +58,11 @@ int arpf_ctrl = 8;
 float next_pitch_val = 0;
 float pitch_val = 0;
 
+const float max_stick = 21.4;
+const float min_stick = 1.3;
+
+float last_valueX = -1;
+float last_valueY = -1;
 
 
 void setup() {
@@ -88,26 +93,33 @@ void loop() {
   if ( get_delta(next_pitch_val, pitch_val) >= 5 ) {
     pitch_val = next_pitch_val;
     Serial.println(pitch_val);
+
+    usbMIDI.sendPitchBend(12300*(pitch_val/615), channel);
   }
   if( get_delta(next_arpf_val, arpf_val) >= 2 ) {
     arpf_val = next_arpf_val;
     Serial.println(arpf_val);
+    usbMIDI.sendControlChange(arpf_ctrl, 123*(arpf_val/414), channel);
   }
 
   if ( get_delta(next_att_val, att_val ) >= 2 ) {
     att_val = next_att_val;
+    usbMIDI.sendControlChange(att_ctrl, 123*(att_val/1023), channel);
     Serial.println(att_val);
   }
   if ( get_delta(next_dec_val, dec_val ) >= 2 ) {
     dec_val = next_dec_val;
+    usbMIDI.sendControlChange(dec_ctrl, 123*(dec_val/1023), channel);
     Serial.println(dec_val);
   }
   if ( get_delta(next_sus_val, sus_val ) >= 2 ) {
     sus_val = next_sus_val;
+    usbMIDI.sendControlChange(sus_ctrl, 123*(sus_val/1023), channel);
     Serial.println(sus_val);
   }
   if ( get_delta(next_rel_val, rel_val ) >= 2 ) {
     rel_val = next_rel_val;
+    usbMIDI.sendControlChange(rel_ctrl, 123*(rel_val/1023), channel);
     Serial.println(rel_val);
   }
 
@@ -128,7 +140,7 @@ void loop() {
   if ( get_delta(next_vol_val, vol_val) >= 2.5){
     vol_val = next_vol_val;
     //usbMIDI.sendControlChange(vol_ctrl, 123*(vol_val/838), channel);
-    usbMIDI.sendPitchBend(12300*(vol_val/838), channel);
+    usbMIDI.sendPitchBend(123*(vol_val/838), channel);
     Serial.print("vol");
     Serial.println(vol_val);
   }
@@ -146,6 +158,28 @@ void loop() {
     usbMIDI.sendControlChange(arp_ctrl, -50, channel);
     Serial.println("32");
   }
+
+
+  float valueX = readJoystick(joyX);
+  valueX = normalize(valueX, min_stick, max_stick);
+  if (abs(valueX - last_valueX) > 0.01) {
+    //usbMIDI.sendControlChange(90, 125*valueX, channel);
+    last_valueX = valueX;
+  }
+
+  //Serial.println(valueX);
+  
+  float valueY = readJoystick(joyY);
+  valueY = normalize(valueY, min_stick, max_stick);
+  if (abs(valueY - last_valueY) > 0.01) {
+    //usbMIDI.sendControlChange(92, 125*valueY, channel);
+    last_valueY = valueY;
+  }
+
+  //Serial.println(valueY);
+  
+  //Serial.println();
+  //delay(100);
 
 }
 
