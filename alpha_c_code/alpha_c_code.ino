@@ -8,7 +8,7 @@ float next_sub_val = 0;
 float sub_val = 0;
 float sub_ctrl = 1;
 
-int vol_pot = 35;
+int vol_pot = 35; 
 float next_vol_val = 0;
 float vol_val = 0;
 float vol_ctrl = 2;
@@ -60,12 +60,16 @@ void loop() {
 
   if (digitalRead(29) == LOW){
     usbMIDI.sendControlChange(arp_ctrl, -10, channel);
+    Serial.println("39");
   } else if (digitalRead(30) == LOW){
     usbMIDI.sendControlChange(arp_ctrl, -20, channel);
+    Serial.println("30");
   } else if (digitalRead(31) == LOW){
     usbMIDI.sendControlChange(arp_ctrl, -30, channel);
+    Serial.println("31");
   } else if (digitalRead(32) == LOW){
     usbMIDI.sendControlChange(arp_ctrl, -50, channel);
+    Serial.println("32");
   }
 
 }
