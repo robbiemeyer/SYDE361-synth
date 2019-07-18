@@ -1,6 +1,10 @@
-#define arp3 0
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+
+#define arp1 0
 #define arp2 1
-#define arp1 2
+#define arp3 2
 #define arp4 3
 #define arpf A9
 #define pitch A8
@@ -18,45 +22,45 @@ const int controllerBase = 80;
 const int channel = 1;
 const int numInputs = 15;
 
-int values [numInputs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-int last_values [numInputs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+//int values [numInputs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+//int last_values [numInputs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-float next_noise_val = 0;
-float noise_val = 0;
+int next_noise_val = 0;
+int noise_val = 0;
 int noise_ctrl = 0;
 
-float next_sub_val = 0;
-float sub_val = 0;
+int next_sub_val = 0;
+int sub_val = 0;
 int sub_ctrl = 1;
 
-float next_vol_val = 0;
-float vol_val = 0;
+int next_vol_val = 0;
+int vol_val = 0;
 int vol_ctrl = 2;
 
-float next_att_val = 0;
-float att_val = 0;
+int next_att_val = 0;
+int att_val = 0;
 int att_ctrl = 3;
 
-float next_dec_val = 0;
-float dec_val = 0;
+int next_dec_val = 0;
+int dec_val = 0;
 int dec_ctrl = 4;
 
-float next_sus_val = 0;
-float sus_val = 0;
+int next_sus_val = 0;
+int sus_val = 0;
 int sus_ctrl = 5;
 
-float next_rel_val = 0;
-float rel_val = 0;
+int next_rel_val = 0;
+int rel_val = 0;
 int rel_ctrl = 6;
 
 int arp_ctrl = 7;
 
-float next_arpf_val = 0;
-float arpf_val = 0;
+int next_arpf_val = 0;
+int arpf_val = 0;
 int arpf_ctrl = 8;
 
-float next_pitch_val = 0;
-float pitch_val = 0;
+int next_pitch_val = 0;
+int pitch_val = 0;
 
 const float max_stick = 21.4;
 const float min_stick = 1.3;
@@ -64,19 +68,28 @@ const float min_stick = 1.3;
 float last_valueX = -1;
 float last_valueY = -1;
 
+bool arp1_changed = false;
+bool arp2_changed = false;
+bool arp3_changed = false;
+bool arp4_changed = false;
 
 void setup() {
   Serial.begin(9600);
 
-  pinMode(arp1, INPUT);
-  pinMode(arp2, INPUT);
-  pinMode(arp3, INPUT);
-  pinMode(arp4, INPUT);
-  pinMode(arpf, INPUT);
-  pinMode(joyX, INPUT);
-  pinMode(joyY, INPUT);
-  pinMode(noise, INPUT);
-  pinMode(vol, INPUT);
+  pinMode(arp1, INPUT_PULLUP);
+  pinMode(arp2, INPUT_PULLUP);
+  pinMode(arp3, INPUT_PULLUP);
+  pinMode(arp4, INPUT_PULLUP);
+//  pinMode(arpf, INPUT);
+//  pinMode(joyX, INPUT);
+//  pinMode(joyY, INPUT);
+//  pinMode(noise, INPUT);
+//  pinMode(vol, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(arp1), arprupt1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(arp2), arprupt2, FALLING);
+  attachInterrupt(digitalPinToInterrupt(arp3), arprupt3, FALLING);
+  attachInterrupt(digitalPinToInterrupt(arp4), arprupt4, FALLING);
 }
 
 void loop() {
@@ -96,79 +109,86 @@ void loop() {
 
     usbMIDI.sendPitchBend(12300*(pitch_val/615), channel);
   }
-  else if( get_delta(next_arpf_val, arpf_val) >= 2 ) {
+  if( get_delta(next_arpf_val, arpf_val) >= 5 ) {
     arpf_val = next_arpf_val;
     Serial.print("arpf");
-    Serial.println(arpf_val);
-    usbMIDI.sendControlChange(arpf_ctrl, 123*(arpf_val/414), channel);
+    Serial.println(arpf_val/8);
+
+    usbMIDI.sendControlChange(arpf_ctrl, arpf_val/8, channel);
   }
 
-  else if ( get_delta(next_att_val, att_val ) >= 2) {
+  if ( get_delta(next_att_val, att_val ) >= 2) {
     att_val = next_att_val;
-    usbMIDI.sendControlChange(att_ctrl, 123*(att_val/1023), channel);
+    usbMIDI.sendControlChange(att_ctrl, att_val/8, channel);
     Serial.print("att");
     Serial.println(att_val);
   }
-  else if ( get_delta(next_dec_val, dec_val ) >= 2 ) {
+  if ( get_delta(next_dec_val, dec_val ) >= 2 ) {
     dec_val = next_dec_val;
-    usbMIDI.sendControlChange(dec_ctrl, 123*(dec_val/1023), channel);
+    usbMIDI.sendControlChange(dec_ctrl, dec_val/8, channel);
     Serial.print("dec");
     Serial.println(dec_val);
   }
   else if ( get_delta(next_sus_val, sus_val ) >= 2 ) {
     sus_val = next_sus_val;
-    usbMIDI.sendControlChange(sus_ctrl, 123*(sus_val/1023), channel);
+    usbMIDI.sendControlChange(sus_ctrl, sus_val/8, channel);
     Serial.print("sus");
     Serial.println(sus_val);
   }
-  else if ( get_delta(next_rel_val, rel_val ) >= 2 ) {
+  if ( get_delta(next_rel_val, rel_val ) >= 2 ) {
     rel_val = next_rel_val;
-    usbMIDI.sendControlChange(rel_ctrl, 123*(rel_val/1023), channel);\
+    usbMIDI.sendControlChange(rel_ctrl, rel_val/8, channel);\
     Serial.print("rel");
     Serial.println(rel_val);
   }
 
   if ( get_delta(next_vol_val, vol_val) >= 2.5){
     vol_val = next_vol_val;
-    usbMIDI.sendControlChange(vol_ctrl, 123*(vol_val/838), channel);
+    usbMIDI.sendControlChange(vol_ctrl, vol_val/8, channel);
     Serial.print("vol");
     Serial.println(vol_val);
   }
   
  if ( get_delta(next_noise_val, noise_val) >= 5 ) {
     noise_val = next_noise_val;
-    usbMIDI.sendControlChange(noise_ctrl, 123*(noise_val/710), channel);
+    usbMIDI.sendControlChange(noise_ctrl, noise_val/8 , channel);
     Serial.print("noise");
     Serial.println(noise_val);
   }
-  else if ( get_delta(next_sub_val, sub_val) >= 5 ) {
+  if ( get_delta(next_sub_val, sub_val) >= 5 ) {
     sub_val = next_sub_val;
-    usbMIDI.sendControlChange(sub_ctrl, 123*(sub_val/710), channel);
+    usbMIDI.sendControlChange(sub_ctrl, sub_val/8, channel);
     Serial.print("sub");
     Serial.println(sub_val);
   }
 
   
 
-  if (digitalRead(arp1) == LOW){
+  if (arp1_changed){
     usbMIDI.sendControlChange(arp_ctrl, 0, channel);
-    Serial.println("39");
-  } else if (digitalRead(arp2) == LOW){
+    Serial.println("arp1");
+    arp1_changed = false;
+  } else if (arp2_changed){
     usbMIDI.sendControlChange(arp_ctrl, 127*(3.0/8.0), channel);
-    Serial.println("30");
-  } else if (digitalRead(arp3) == LOW){
+    Serial.println("apr2");
+    arp2_changed = false;
+  } else if (arp3_changed){
     usbMIDI.sendControlChange(arp_ctrl, 127.0*(5.0/8.0), channel);
-    Serial.println("31");
-  } else if (digitalRead(arp4) == LOW){
+    Serial.println("arp3");
+    arp3_changed = false;
+  } else if (arp4_changed){
     usbMIDI.sendControlChange(arp_ctrl, 127, channel);
-    Serial.println("32");
+    Serial.println("arp4");
+    arp4_changed = false;
   }
 
 
   float valueX = readJoystick(joyX);
   valueX = 1 - normalize(valueX, min_stick, max_stick);
   if (abs(valueX - last_valueX) > 0.01) {
-     usbMIDI.sendControlChange(90, 125*valueX, channel);
+    usbMIDI.sendControlChange(90, 127*valueX, channel);
+    Serial.print("joyX");
+    Serial.println(127*valueX);
     last_valueX = valueX;
   }
 
@@ -177,14 +197,16 @@ void loop() {
   float valueY = readJoystick(joyY);
   valueY = normalize(valueY, min_stick, max_stick);
   if (abs(valueY - last_valueY) > 0.01) {
-    usbMIDI.sendControlChange(92, 125*valueY, channel);
+    usbMIDI.sendControlChange(92, 127*valueY, channel);
+    Serial.print("joyY");
+    Serial.println(127*valueY);
     last_valueY = valueY;
   }
 
   //Serial.println(valueY);
   
   //Serial.println();
-  //delay(100);
+  delay(50);
 
 }
 
@@ -214,4 +236,17 @@ int smoothRead(uint8_t pin, int iter){
 
 float get_delta(float next_val, float cur_val){
   return abs(cur_val - next_val);
+}
+
+void arprupt1(){
+  arp1_changed = true;
+}
+void arprupt2(){
+  arp2_changed = true;
+}
+void arprupt3(){
+  arp3_changed = true;
+}
+void arprupt4(){
+  arp4_changed = true;
 }
