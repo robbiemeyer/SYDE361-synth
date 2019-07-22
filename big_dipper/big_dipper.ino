@@ -6,17 +6,17 @@
 #define arp2 1
 #define arp3 2
 #define arp4 3
-#define arpf A9
-#define pitch A8
-#define att A7
-#define dec A6
-#define sus A5
-#define rel A4
-#define noise A2
-#define vol A1
-#define sub A3
-#define joyY A0
-#define joyX A22
+#define arpf A22
+#define pitch A9
+#define att A8
+#define dec A7
+#define sus A6
+#define rel A5
+#define noise A1
+#define vol A2
+#define sub A0
+#define joyY A4
+#define joyX A3
 
 const int controllerBase = 80;
 const int channel = 1;
@@ -96,16 +96,16 @@ void loop() {
   next_noise_val = smoothRead(noise, 200);
   next_sub_val = smoothRead(sub, 200);
   next_pitch_val = smoothRead(pitch, 200);
-  next_vol_val = smoothRead(vol, 10);
+  next_vol_val = 1024 - smoothRead(vol, 10);
   next_att_val = smoothRead(att, 10);
   next_dec_val = smoothRead(dec, 10);
   next_sus_val = smoothRead(sus, 10);
   next_rel_val = smoothRead(rel, 10);
-  next_arpf_val = smoothRead(arpf, 1);
+  next_arpf_val = 1024 - smoothRead(arpf, 1);
 
   if ( get_delta(next_pitch_val, pitch_val) >= 5 ) {
     pitch_val = next_pitch_val;
-    //Serial.println(pitch_val);
+    Serial.println(pitch_val);
 
     usbMIDI.sendPitchBend(12300*(pitch_val/615), channel);
   }
@@ -135,7 +135,7 @@ void loop() {
     Serial.print("sus");
     Serial.println(sus_val);
   }
-  if ( get_delta(next_rel_val, rel_val ) >= 2 ) {
+  if ( get_delta(next_rel_val, rel_val ) >= 16 ) {
     rel_val = next_rel_val;
     usbMIDI.sendControlChange(rel_ctrl, rel_val/8, channel);\
     Serial.print("rel");
@@ -195,7 +195,7 @@ void loop() {
   //Serial.println(valueX);
   
   float valueY = readJoystick(joyY);
-  valueY = normalize(valueY, min_stick, max_stick);
+  valueY = 1 - normalize(valueY, min_stick, max_stick);
   if (abs(valueY - last_valueY) > 0.01) {
     usbMIDI.sendControlChange(92, 127*valueY, channel);
     Serial.print("joyY");
