@@ -93,21 +93,21 @@ void setup() {
 }
 
 void loop() {
-  next_noise_val = smoothRead(noise, 200);
-  next_sub_val = smoothRead(sub, 200);
-  next_pitch_val = smoothRead(pitch, 200);
-  next_vol_val = 1024 - smoothRead(vol, 10);
-  next_att_val = smoothRead(att, 10);
-  next_dec_val = smoothRead(dec, 10);
-  next_sus_val = smoothRead(sus, 10);
-  next_rel_val = smoothRead(rel, 10);
-  next_arpf_val = 1024 - smoothRead(arpf, 1);
+  next_noise_val = 1023*normalize(1024 - smoothRead(noise, 200), 0, 1024);
+  next_sub_val = 1023*normalize(1024 - smoothRead(sub, 200), 0, 1024);
+  next_pitch_val = 1023*normalize(smoothRead(pitch, 200), 0, 1024);
+  next_vol_val = 1023*normalize(1024 - smoothRead(vol, 10), 0, 1024);
+  next_att_val = 1023*normalize(smoothRead(att, 10), 0, 1024);
+  next_dec_val = 1023*normalize(smoothRead(dec, 10), 0, 1024);
+  next_sus_val = 1023*normalize(smoothRead(sus, 10), 0, 1024);
+  next_rel_val = 1023*normalize(smoothRead(rel, 10), 0, 1024);
+  next_arpf_val = 1023*normalize(1024 - smoothRead(arpf, 1), 100, 1024);
 
   if ( get_delta(next_pitch_val, pitch_val) >= 5 ) {
     pitch_val = next_pitch_val;
     Serial.println(pitch_val);
 
-    usbMIDI.sendPitchBend(12300*(pitch_val/615), channel);
+    usbMIDI.sendPitchBend(10000*normalize(pitch_val, 0, 900) - 5000, channel);
   }
   if( get_delta(next_arpf_val, arpf_val) >= 5 ) {
     arpf_val = next_arpf_val;
@@ -185,7 +185,7 @@ void loop() {
 
   float valueX = readJoystick(joyX);
   valueX = 1 - normalize(valueX, min_stick, max_stick);
-  if (abs(valueX - last_valueX) > 0.01) {
+  if (abs(valueX - last_valueX) > 0.05) {
     usbMIDI.sendControlChange(90, 127*valueX, channel);
     Serial.print("joyX");
     Serial.println(127*valueX);
@@ -196,7 +196,7 @@ void loop() {
   
   float valueY = readJoystick(joyY);
   valueY = 1 - normalize(valueY, min_stick, max_stick);
-  if (abs(valueY - last_valueY) > 0.01) {
+  if (abs(valueY - last_valueY) > 0.05) {
     usbMIDI.sendControlChange(92, 127*valueY, channel);
     Serial.print("joyY");
     Serial.println(127*valueY);
@@ -206,7 +206,7 @@ void loop() {
   //Serial.println(valueY);
   
   //Serial.println();
-  delay(50);
+  delay(200);
 
 }
 
